@@ -34,8 +34,8 @@ public:
 		return F(wi, wm)*G(wo, wi)*D(wm) / (4.0*wi.z*wo.z);
 	}
 
-	double calc_pdf(const vec3& wm)const {
-		return D(wm)*wm.z;
+	double calc_pdf(const vec3& wi, const vec3& wm)const {
+		return D(wm)*wm.z / (4.0*dot(wi, wm));
 	}
 
 	// Fresnel term

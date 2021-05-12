@@ -5,8 +5,7 @@
 
 using namespace std;
 
-int main()
-{
+int main() {
 	//Properties
 	const double aspect_ratio = 16.0 / 9.0;
 	const int image_width = 400;

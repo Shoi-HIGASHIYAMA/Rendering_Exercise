@@ -43,9 +43,9 @@ double world::calc_light_pdf(const ray& r)const {
 	hit_record rec;
 	if (!hit(r, rec) || !rec.isLight)return 0.0;
 	double tp = lights[rec.id]->get_light_source_pdf(rec.point) / (int)lights.size();
-	double upper = abs(dot(rec.normal, unit_vector(r.get_orig() - rec.point)));
-	double lower = (r.get_orig() - rec.point).length()*(r.get_orig() - rec.point).length();
-	tp = lower / upper * tp;
+	double lower = abs(dot(rec.normal, unit_vector(r.get_orig() - rec.point)));
+	double upper = (r.get_orig() - rec.point).length()*(r.get_orig() - rec.point).length();
+	tp = upper / lower * tp;
 	return tp;
 }
 
@@ -101,11 +101,11 @@ vec3 world::ray_color(const ray& r, vec3 throughput, int depth, const int roulet
 		ray next_ray = ray(rec.point, wi_world);
 
 		double fr = objects[rec.id]->get_microfacet()->calc_fr(wo_local, wi_local, wm_local);
-		double ps = objects[rec.id]->get_microfacet()->calc_pdf(wm_local);
+		double ps = objects[rec.id]->get_microfacet()->calc_pdf(wi_local, wm_local);
 		double pd = calc_light_pdf(next_ray);
 
 		vec3 fd = objects[rec.id]->get_color();
-		fd *= fr * 4.0*dot(wi_local, wm_local)*wo_local.z;
+		fd *= fr * wo_local.z;
 
 		if (fd.length() < 1e-9)	{
 			return vec3(0.0, 0.0, 0.0);
@@ -131,11 +131,11 @@ vec3 world::ray_color(const ray& r, vec3 throughput, int depth, const int roulet
 		ray next_ray = ray(rec.point, wi_world);
 
 		double fr = objects[rec.id]->get_microfacet()->calc_fr(wo_local, wi_local, wm_local);
-		double ps = objects[rec.id]->get_microfacet()->calc_pdf(wm_local);
+		double ps = objects[rec.id]->get_microfacet()->calc_pdf(wi_local, wm_local);
 		double pd = calc_light_pdf(next_ray);
 
 		vec3 fs = objects[rec.id]->get_color();
-		fs *= fr * 4.0*dot(wi_local, wm_local)*wo_local.z;
+		fs *= fr * wo_local.z;
 
 		if (fs.length() < 1e-9)	{
 			return vec3(0.0, 0.0, 0.0);
