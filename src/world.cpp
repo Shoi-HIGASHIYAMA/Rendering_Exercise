@@ -3,23 +3,18 @@
 #include<functional>
 
 //Detect ray collision with objects or light sources.
-bool world::hit(const ray& r, hit_record& rec)const
-{
+bool world::hit(const ray& r, hit_record& rec)const {
 	bool hit_anything = false;
 	double t = infinity;
 
-	for (int i = 0; i != objects.size(); i++)
-	{
-		if (objects[i]->hit(r, 0.001, t, t))
-		{
+	for (int i = 0; i != objects.size(); i++) {
+		if (objects[i]->hit(r, 0.001, t, t)) {
 			hit_anything = true;
 			rec = hit_record(i, r.at(t), objects[i]->calc_norm(r.at(t)), false);
 		}
 	}
-	for (int i = 0; i != lights.size(); i++)
-	{
-		if (lights[i]->hit(r, 0.001, t, t))
-		{
+	for (int i = 0; i != lights.size(); i++) {
+		if (lights[i]->hit(r, 0.001, t, t))	{
 			hit_anything = true;
 			rec = hit_record(i, r.at(t), lights[i]->calc_norm(r.at(t)), true);
 		}
@@ -29,8 +24,7 @@ bool world::hit(const ray& r, hit_record& rec)const
 }
 
 //Sample a point on surface of a light source.
-bool world::sample_light(vec3 point, light_record& rec)const
-{
+bool world::sample_light(vec3 point, light_record& rec)const {
 	int N = (int)lights.size();
 
 	if (N == 0)return false;
@@ -45,8 +39,7 @@ bool world::sample_light(vec3 point, light_record& rec)const
 }
 
 //Calculate the direct lighting pdf of the point on the light source surface that collides with the ray r.
-double world::calc_light_pdf(const ray& r)const
-{
+double world::calc_light_pdf(const ray& r)const {
 	hit_record rec;
 	if (!hit(r, rec) || !rec.isLight)return 0.0;
 	double tp = lights[rec.id]->get_light_source_pdf(rec.point) / (int)lights.size();
@@ -57,10 +50,8 @@ double world::calc_light_pdf(const ray& r)const
 }
 
 //Ray Tracing
-vec3 world::ray_color(const ray& r, vec3 throughput, int depth, const int roulette_depth, const int max_depth)const
-{
-	if (depth == max_depth)
-	{
+vec3 world::ray_color(const ray& r, vec3 throughput, int depth, const int roulette_depth, const int max_depth)const {
+	if (depth == max_depth)	{
 		return vec3(0.0, 0.0, 0.0);
 	}
 
@@ -75,34 +66,28 @@ vec3 world::ray_color(const ray& r, vec3 throughput, int depth, const int roulet
 
 	//Collision Detection
 	hit_record rec;
-	if (!hit(r, rec))
-	{
-		if (depth == 0)
-		{
+	if (!hit(r, rec)) {
+		if (depth == 0)	{
 			return vec3(0.1, 0.1, 0.1);
 		}
-		else
-		{
+		else {
 			return vec3(0.0, 0.0, 0.0);
 		}
 	}
 
 	//if r collides with a light source, return its emission.
-	if (rec.isLight)
-	{
+	if (rec.isLight) {
 		return lights[rec.id]->get_emit();
 	}
 
 	//Direct Lighting
-	auto calc_direct_lighting = [&]()
-	{
+	auto calc_direct_lighting = [&]() {
 		vec3 wo_world = -r.get_dir();
 		vec3 wo_local = world_to_local(wo_world, rec.normal, rec.binormal, rec.tangent);
 
 		//Light Source Sampling
 		light_record lrec;
-		if (!sample_light(rec.point, lrec))
-		{
+		if (!sample_light(rec.point, lrec))	{
 			return vec3(0.0, 0.0, 0.0);
 		}
 
@@ -122,8 +107,7 @@ vec3 world::ray_color(const ray& r, vec3 throughput, int depth, const int roulet
 		vec3 fd = objects[rec.id]->get_color();
 		fd *= fr * 4.0*dot(wi_local, wm_local)*wo_local.z;
 
-		if (fd.length() < 1e-9)
-		{
+		if (fd.length() < 1e-9)	{
 			return vec3(0.0, 0.0, 0.0);
 		}
 
@@ -135,8 +119,7 @@ vec3 world::ray_color(const ray& r, vec3 throughput, int depth, const int roulet
 	};
 
 	//BRDF
-	auto calc_brdf_lighting = [&]()
-	{
+	auto calc_brdf_lighting = [&]()	{
 		vec3 wo_world = -r.get_dir();
 		vec3 wo_local = world_to_local(wo_world, rec.normal, rec.binormal, rec.tangent);
 
@@ -154,8 +137,7 @@ vec3 world::ray_color(const ray& r, vec3 throughput, int depth, const int roulet
 		vec3 fs = objects[rec.id]->get_color();
 		fs *= fr * 4.0*dot(wi_local, wm_local)*wo_local.z;
 
-		if (fs.length() < 1e-9)
-		{
+		if (fs.length() < 1e-9)	{
 			return vec3(0.0, 0.0, 0.0);
 		}
 
